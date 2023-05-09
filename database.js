@@ -7,9 +7,7 @@ class Database {
 
   connect() {
     mongoose
-      .connect(
-        "mongodb+srv://pawansingh:5fVBbcnlc2mfAC2Z@twitter-clone.tht1vy0.mongodb.net/?retryWrites=true&w=majority"
-      )
+      .connect(process.env.MONGODB_CONNECTION_URL)
       .then(() => {
         console.log("connected to db");
       })

@@ -112,7 +112,7 @@ router.post("/:id/retweet", async (req, res, next) => {
     postedBy: userId,
     retweetData: postId,
   }).catch((error) => {
-    console.log("h1" + error);
+    console.log(error);
     return res.sendStatus(400);
   });
 
@@ -123,7 +123,7 @@ router.post("/:id/retweet", async (req, res, next) => {
   if (repost == null) {
     repost = await Post.create({ postedBy: userId, retweetData: postId }).catch(
       (error) => {
-        console.log("h2" + error);
+        console.log(error);
         return res.sendStatus(400);
       }
     );
@@ -142,7 +142,7 @@ router.post("/:id/retweet", async (req, res, next) => {
     { [option]: { retweetUsers: userId } },
     { new: true }
   ).catch((error) => {
-    console.log("h4" + error);
+    console.log(error);
     return res.sendStatus(400);
   });
 
