@@ -1,10 +1,11 @@
 extends layouts/mainLayout.pug 
 
 block content 
-    +createPostForm(user)
+    script.
+        let postId = '!{postId}'
     .postContainer
 
     +createPostModals(user)
 
 block scripts
-    script(src="/js/home.js") 
+    script(src="/js/postPage.js") 

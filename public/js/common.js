@@ -1,8 +1,10 @@
-$("#postTextarea").keyup((event) => {
+$("#postTextarea, #replyTextarea").keyup((event) => {
   let textBox = $(event.target);
   let value = textBox.val().trim();
 
-  let submitButton = $("#submitPostButton");
+  let isModal = textBox.parents(".modal").length == 1;
+
+  let submitButton = isModal ? $("#submitReplyButton") : $("#submitPostButton");
 
   if (submitButton.length == 0) return alert("No button found");
 
@@ -14,19 +16,63 @@ $("#postTextarea").keyup((event) => {
   submitButton.prop("disabled", false);
 });
 
-$("#submitPostButton").click((event) => {
+$("#submitPostButton, #submitReplyButton").click((event) => {
   let button = $(event.target);
-  let textBox = $("#postTextarea");
+  let isModal = button.parents(".modal").length == 1;
+  let textBox = isModal ? $("#replyTextarea") : $("#postTextarea");
 
   let data = {
     content: textBox.val(),
   };
 
+  if (isModal) {
+    const id = button.data().id;
+    if (id == null) return alert("Button id is null");
+    data.replyTo = id;
+  }
+
   $.post("/api/posts", data, (postData, status, xhr) => {
-    let html = createPostHTML(postData);
-    $(".postContainer").prepend(html);
-    textBox.val("");
-    button.prop("disabled", true);
+    if (postData.replyTo) {
+      location.reload();
+    } else {
+      let html = createPostHTML(postData);
+      $(".postContainer").prepend(html);
+      textBox.val("");
+      button.prop("disabled", true);
+    }
+  });
+});
+
+$("#replyModal").on("show.bs.modal", (event) => {
+  let button = $(event.relatedTarget);
+  let postId = getPostIdFromElement(button);
+
+  $("#submitReplyButton").data("id", postId);
+
+  $.get(`/api/posts/${postId}`, (post) => {
+    output(post.postData, $("#originalPostContainer"));
+  });
+});
+
+$("#replyModal").on("hidden.bs.modal", () =>
+  $("#originalPostContainer").html("")
+);
+
+$("#deletePostModal").on("show.bs.modal", (event) => {
+  let button = $(event.relatedTarget);
+  let postId = getPostIdFromElement(button);
+
+  $("#deletePostButton").data("id", postId);
+});
+
+$("#deletePostButton").click((event) => {
+  let postId = $(event.target).data("id");
+  $.ajax({
+    url: `/api/posts/${postId}`,
+    type: "DELETE",
+    success: () => {
+      location.reload();
+    },
   });
 });
 
@@ -68,6 +114,15 @@ $(document).on("click", ".retweetButton", (event) => {
   });
 });
 
+$(document).on("click", ".post", (event) => {
+  let element = $(event.target);
+  let postId = getPostIdFromElement(element);
+
+  if (postId !== undefined && !element.is("button")) {
+    window.location.href = `/posts/${postId}`;
+  }
+});
+
 function getPostIdFromElement(element) {
   let isRoot = element.hasClass("post");
   let rootElement = isRoot ? element : element.closest(".post");
@@ -75,7 +130,7 @@ function getPostIdFromElement(element) {
   return postId == undefined ? alert("post id undefined") : postId;
 }
 
-function createPostHTML(postData) {
+function createPostHTML(postData, largeFont = false) {
   if (postData == null) return alert("No Post Data");
 
   let isRetweet = postData.retweetData !== undefined;
@@ -90,6 +145,8 @@ function createPostHTML(postData) {
 
   const displayName = `${postedBy.firstName} ${postedBy.lastName}`;
   const timestamp = timeDifference(new Date(), new Date(postData.createdAt));
+
+  let largeFontClass = largeFont ? "largeFont" : "";
 
   let likeButtonIsActive = postData.likes.includes(userLoggedIn._id)
     ? "active"
@@ -107,7 +164,25 @@ function createPostHTML(postData) {
                   </span>`;
   }
 
-  return `<div class = "post" data-id=${postData._id}>
+  let replyFlag = "";
+  if (postData.replyTo && postData.replyTo._id) {
+    if (!postData.replyTo._id) {
+      return alert("Reply to is not populated");
+    } else if (!postData.replyTo.postedBy._id) {
+      return alert("Posted By is not populated");
+    }
+    let replyTousername = postData.replyTo.postedBy.username;
+    replyFlag = `<div class="replyFlag">
+                    Replying to <a href='/profile/${replyTousername}'>@${replyTousername}</a>
+                  </div>`;
+  }
+
+  let buttons = "";
+  if (postData.postedBy._id == userLoggedIn._id) {
+    buttons = `<button data-id="${postData._id}" data-bs-toggle="modal" data-bs-target="#deletePostModal"><i class="fas fa-times"></i></button>`;
+  }
+
+  return `<div class = "post ${largeFontClass}" data-id=${postData._id}>
             <div class="postActionContainer">
               ${retweetText}
             </div>
@@ -122,13 +197,15 @@ function createPostHTML(postData) {
                   }' class = "displayName">${displayName}</a>
                   <span class='username'>@${postedBy.username}</span>
                   <span class='date'>${timestamp}</span>
+                  ${buttons}
                 </div>
+                ${replyFlag}
                 <div class = "postBody">
                   <span>${content}</span>
                 </div>
                 <div class = "postFooter">
                   <div class="postButtonContainer">
-                      <button data-toggle="modal" data-target="#replyModal">
+                      <button data-bs-toggle="modal" data-bs-target="#replyModal">
                         <i class = "far fa-comment"></i>
                       </button>
                   </div>
@@ -173,4 +250,38 @@ function timeDifference(current, previous) {
   } else {
     return Math.round(elapsed / msPerYear) + " years ago";
   }
+}
+
+function output(posts, container) {
+  container.html("");
+
+  if (!Array.isArray(posts)) {
+    posts = [posts];
+  }
+
+  posts.forEach((post) => {
+    let html = createPostHTML(post);
+    container.append(html);
+  });
+
+  if (posts.length == 0) {
+    container.append("<span>Create your first Post!</span>");
+  }
+}
+
+function outputPostWithReplies(results, container) {
+  container.html("");
+
+  if (results.replyTo !== undefined && results.replyTo._id !== undefined) {
+    let html = createPostHTML(results.replyTo);
+    container.append(html);
+  }
+
+  let namePosthtml = createPostHTML(results.postData, true);
+  container.append(namePosthtml);
+
+  results.replies.forEach((post) => {
+    let html = createPostHTML(post);
+    container.append(html);
+  });
 }
