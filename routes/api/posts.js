@@ -4,7 +4,6 @@ const router = express.Router();
 const bodyParser = require("body-parser");
 const User = require("../../schemas/userSchema");
 const Post = require("../../schemas/postSchema");
-const { get } = require("mongoose");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
