@@ -16,6 +16,8 @@ block content
         .tabsContainer
             +createTab("Followers",`/profile/${profileUser.username}/followers`, selectedTab != "following")
             +createTab("Following",`/profile/${profileUser.username}/following`, selectedTab == "following")
+        
+        .followContentContainer
 
 block scripts
     script(src="/js/follow.js") 

@@ -161,7 +161,7 @@ button span {
     flex-shrink: 0
 }
 
-.mainContentcontainer {
+.mainContentContainer {
     flex: 1;
     display: flex
 }
@@ -354,4 +354,17 @@ button span {
 .tab:hover {
     color: var(--blue);
     background-color: var(--blueBackground);
+}
+
+.followContentContainer {
+    display: flex;
+    flex-direction: row;
+    padding-top: 5px;
+    padding-left: 5px
+}
+
+.followContentContainer .followUserContentContainer .header {
+    display: flex;
+    flex-direction: column;
+    padding-left: var(--spacing)
 }
