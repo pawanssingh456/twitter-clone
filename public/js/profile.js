@@ -1,5 +1,5 @@
 $(document).ready(() => {
-  if (selectedTab == "replies") {
+  if (selectedTab === "replies") {
     loadPosts(true);
   } else {
     loadPosts(false);
@@ -7,7 +7,7 @@ $(document).ready(() => {
 });
 
 $("#submitFollowButton").click((event) => {
-  let followingId = $(event.target).data("user");
+  const followingId = $(event.target).data("user");
 
   $.ajax({
     url: `/api/users/${followingId}`,

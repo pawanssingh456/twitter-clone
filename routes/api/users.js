@@ -6,17 +6,11 @@ const User = require("../../schemas/userSchema");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
-router.get("/", async (req, res, next) => {
-  let searchObject = req.query;
-  let isFollower;
+router.get("/", async (req, res) => {
+  const { isFollower, ...searchObject } = req.query;
+  const users = await getUsers(searchObject, isFollower === "true");
 
-  if (searchObject.isFollower !== undefined) {
-    isFollower = searchObject.isFollower == "true";
-    delete searchObject.isFollower;
-  }
-
-  let user = await getUsers(searchObject, isFollower);
-  res.status(200).send(user);
+  res.status(200).send(users);
 });
 
 router.put("/:uid", async (req, res, next) => {
@@ -29,41 +23,40 @@ router.put("/:uid", async (req, res, next) => {
 
   let option = isFollower ? "$pull" : "$addToSet";
 
-  req.session.user = await User.findByIdAndUpdate(
-    userId,
-    { [option]: { following: followingId } },
-    { new: true }
-  ).catch((error) => {
-    return res.sendStatus(400);
-  });
+  try {
+    req.session.user = await User.findByIdAndUpdate(
+      userId,
+      { [option]: { following: followingId } },
+      { new: true }
+    ).exec();
 
-  let user = await User.findByIdAndUpdate(
-    followingId,
-    { [option]: { followers: userId } },
-    { new: true }
-  ).catch((error) => {
-    return res.sendStatus(400);
-  });
+    let user = await User.findByIdAndUpdate(
+      followingId,
+      { [option]: { followers: userId } },
+      { new: true }
+    ).exec();
 
-  res.status(200).send(user);
+    res.status(200).send(user);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error updating user");
+  }
 });
 
 async function getUsers(filter, isFollower) {
-  let user = await User.find(filter).catch((error) => {
-    return res.sendStatus(400);
-  });
+  try {
+    let users = await User.find(filter)
+      .populate(isFollower ? "followers" : "following")
+      .exec();
 
-  user = await User.populate(user, {
-    path: isFollower ? "followers" : "following",
-  });
-
-  if (isFollower) {
-    user = user[0].followers;
-  } else {
-    user = user[0].following;
+    if (isFollower) {
+      return users.map((user) => user.followers).flat();
+    } else {
+      return users.map((user) => user.following).flat();
+    }
+  } catch (error) {
+    throw new Error("Error fetching users");
   }
-
-  return user;
 }
 
 module.exports = router;

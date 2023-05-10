@@ -1,45 +1,49 @@
 const express = require("express");
 const app = express();
-const router = express.Router();
 const bodyParser = require("body-parser");
 const User = require("../schemas/userSchema");
 const bcrypt = require("bcrypt");
+const router = express.Router();
 
 app.set("view engine", "pug");
 app.set("views", "views");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
-router.get("/", (req, res, next) => {
-  res.status(200).render("login");
+router.get("/", (req, res) => {
+  res.render("login");
 });
 
-router.post("/", async (req, res, next) => {
-  let payload = req.body;
-  if (req.body.email && req.body.password) {
-    let user = await User.findOne({
-      $or: [{ email: req.body.email }, { username: req.body.email }],
-    }).catch((err) => {
-      console.log(err);
-      payload.errorMessage = "Something Went Wrong!";
-      res.status(200).render("login", payload);
-    });
+router.post("/", async (req, res) => {
+  const { email, password } = req.body;
 
-    if (user) {
-      const result = await bcrypt.compare(req.body.password, user.password);
-
-      if (result === true) {
-        req.session.user = user;
-        return res.redirect("/");
-      }
-    }
-
-    payload.errorMessage = "Incorrect Login Credentials!";
-    return res.status(200).render("login", payload);
+  if (!email || !password) {
+    const payload = { errorMessage: "Please fill all fields." };
+    return res.status(400).render("login", payload);
   }
 
-  payload.errorMessage = "Please fill all the fields.";
-  res.status(200).render("login");
+  try {
+    const user = await User.findOne({
+      $or: [{ email }, { username: email }],
+    });
+    if (!user) {
+      const payload = { errorMessage: "Incorrect login credentials!" };
+      return res.status(401).render("login", payload);
+    }
+
+    const isPasswordMatched = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatched) {
+      const payload = { errorMessage: "Incorrect login credentials!" };
+      return res.status(401).render("login", payload);
+    }
+
+    req.session.user = user;
+    res.redirect("/");
+  } catch (error) {
+    console.log(error);
+    const payload = { errorMessage: "Something went wrong!" };
+    res.status(500).render("login", payload);
+  }
 });
 
 module.exports = router;

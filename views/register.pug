@@ -1,30 +1,33 @@
 extends layouts/loginLayout.pug
 
-block content 
-    .loginContainer
-        h1 Register 
-        form#registerForm(action="", method="post", onsubmit="event.preventDefault(); validateForm()")
-
-            p.errorMessage #{errorMessage}
-
-            input(type="text", name="firstName", placeholder="First Name", value=firstName, required="")
-            input(type="text", name="lastName", placeholder="Last Name", value=lastName, required="")
-            input(type="text", name="username", placeholder="Username", value=username, required="")
-            input(type="email", name="email", placeholder="Email", value=email, required="")
-            input#password(type="password", name="password", placeholder="Password", required="")
-            input#passwordConfirm(type="password", name="passwordConfirm", placeholder="Confirm Password", required="")
-            input(type="submit", value="Register")
-        a(href="/login") Already have an account? Login here. 
+block content
+  .login-container
+    h1 Register
+    form#registerForm(action="", method="post")
+      p.errorMessage #{errorMessage}
+      input(type="text", name="firstName", placeholder="First Name", value=firstName, required="")
+      input(type="text", name="lastName", placeholder="Last Name", value=lastName, required="")
+      input(type="text", name="username", placeholder="Username", value=username, required="")
+      input(type="email", name="email", placeholder="Email", value=email, required="")
+      input#password(type="password", name="password", placeholder="Password", required="")
+      input#passwordConfirm(type="password", name="passwordConfirm", placeholder="Confirm Password", required="")
+      input(type="submit", value="Register")
+    a(href="/login") Already have an account? Login here.
 
     script.
-        var passwordField = document.getElementById('password')
-        var passwordConfirmField = document.getElementById('passwordConfirm')
-        var form = document.getElementById('registerForm')
-
-        function validateForm(){
-            if(passwordField.value != passwordConfirmField.value){
-                alert("Passwords do not match!")
+        const form = document.getElementById("registerForm");
+        const passwordField = document.getElementById("password");
+        const passwordConfirmField = document.getElementById("passwordConfirm");
+        
+        function validateForm() {
+            if (passwordField.value !== passwordConfirmField.value) {
+            alert("Passwords do not match!");
             } else {
-                form.submit()
+            form.submit();
             }
         }
+        
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            validateForm();
+        });

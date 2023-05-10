@@ -1,4 +1,64 @@
-body{
+:root {
+    --primary-color: #0099ff;
+    --background-color: #f2f2f2;
+    --border-color: #dedede;
+    --box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+body {
+    background-color: var(--primary-color);
+}
+
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.login-container {
+    padding: 2px;
+    width: 80%;
+    max-width: 500px;
+    border: 1px solid var(--border-color);
+    background-color: #fff;
+    text-align: center;
+    box-shadow: var(--box-shadow);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    margin-bottom: 20px;
+    padding: 0.5rem 1rem;
+    border-radius: 2px;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+}
+
+input[type="submit"] {
+    margin-bottom: 10px;
+    border-radius: 2px;
+    border: none;
+    background-color: var(--primary-color);
+    color: #fff;
+    padding: 0.5rem 1rem;
+}
+
+
+
+
+
+
+
+
+
+
+/* body{
     background-color : #0099ff;
 }
 
@@ -42,4 +102,4 @@ input[type="submit"]{
     border: none;
     background-color: #0099ff;
     color: #fff
-}
+} */

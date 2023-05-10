@@ -2,17 +2,24 @@ const express = require("express");
 const app = express();
 const router = express.Router();
 const bodyParser = require("body-parser");
-const Post = require("../schemas/postSchema");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
 router.get("/:id", (req, res, next) => {
-  let payload = {
+  const postId = req.params.id;
+
+  // Check if postId is a valid ObjectId
+  if (!/^[0-9a-fA-F]{24}$/.test(postId)) {
+    return res.status(400).send("Invalid post ID");
+  }
+
+  const payload = {
     pageTitle: "View Post",
     user: req.session.user,
     userJS: JSON.stringify(req.session.user),
-    postId: req.params.id,
+    postId,
   };
+
   res.status(200).render("postPage", payload);
 });
 

@@ -6,18 +6,19 @@ const User = require("../schemas/userSchema");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
-router.get("/", async (req, res, next) => {
-  let payload = {
+router.get("/", (req, res, next) => {
+  res.status(200).render("profilePage", {
     pageTitle: req.session.user.username,
     user: req.session.user,
     userJS: JSON.stringify(req.session.user),
     profileUser: req.session.user,
-  };
-  res.status(200).render("profilePage", payload);
+  });
 });
 
 router.get("/:username", async (req, res, next) => {
-  let payload = await getPayload(req.params.username, req.session.user);
+  const { username } = req.params;
+  const user = req.session.user;
+  const payload = await getPayload(username, user);
   res.status(200).render("profilePage", payload);
 });
 
@@ -27,31 +28,39 @@ router.get("/:username/replies", async (req, res, next) => {
   res.status(200).render("profilePage", payload);
 });
 
-router.get("/:username/followers", async (req, res, next) => {
-  let payload = await getPayload(req.params.username, req.session.user);
-  payload.selectedTab = "followers";
-  res.status(200).render("follow", payload);
+router.get("/:username/following", async (req, res, next) => {
+  try {
+    let payload = await getPayload(req.params.username, req.session.user);
+    payload.selectedTab = "following";
+    res.status(200).render("follow", payload);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-router.get("/:username/following", async (req, res, next) => {
-  let payload = await getPayload(req.params.username, req.session.user);
-  payload.selectedTab = "following";
-  res.status(200).render("follow", payload);
+router.get("/:username/followers", async (req, res, next) => {
+  try {
+    let payload = await getPayload(req.params.username, req.session.user);
+    payload.selectedTab = "followers";
+    res.status(200).render("follow", payload);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 async function getPayload(username, userLoggedIn) {
-  let user = await User.findOne({ username: username });
+  const user =
+    (await User.findOne({ username: username })) ||
+    (await User.findById(username));
 
-  if (user == null) {
-    user = await User.findById(username);
-
-    if (user == null) {
-      return {
-        pageTitle: "User Not Found.",
-        user: userLoggedIn,
-        userJS: JSON.stringify(userLoggedIn),
-      };
-    }
+  if (!user) {
+    return {
+      pageTitle: "User Not Found.",
+      user: userLoggedIn,
+      userJS: JSON.stringify(userLoggedIn),
+    };
   }
 
   return {
