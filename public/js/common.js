@@ -1,3 +1,6 @@
+let timer;
+let selectedUsers = [];
+
 $("#postTextarea, #replyTextarea").keyup((event) => {
   let textBox = $(event.target);
   let value = textBox.val().trim();
@@ -40,6 +43,43 @@ $("#submitPostButton, #submitReplyButton").click((event) => {
       textBox.val("");
       button.prop("disabled", true);
     }
+  });
+});
+
+$("#userSearchTextBox").keydown((event) => {
+  clearTimeout(timer);
+  let textBox = $(event.target);
+  let value = textBox.val();
+
+  if (value == "" && (event.which == 8 || event.keyCode == 8)) {
+    //remove user from selection
+    selectedUsers.pop();
+    updateSelectedUserHTML();
+    $(".results-container").empty();
+
+    if (selectedUsers.length == 0) {
+      $("#createChatButton").prop("disabled", true);
+    }
+
+    return;
+  }
+
+  timer = setTimeout(() => {
+    value = textBox.val().trim();
+
+    if (value == "") {
+      $(".results-container").empty();
+    } else {
+      searchUsers(value);
+    }
+  }, 1000);
+});
+
+$("#createChatButton").click((event) => {
+  let data = JSON.stringify(selectedUsers);
+  $.post("/api/chats", { users: data }, (chat) => {
+    if (!chat && !chat._id) return alert("Invalid response from server.");
+    window.location.href = `/messages/${chat._id}`;
   });
 });
 
@@ -319,4 +359,57 @@ function outputUsers(users, container) {
   if (users.length === 0) {
     container.append("<span></span>");
   }
+}
+
+function outputSelectableUsers(users, container) {
+  container.empty();
+
+  if (!Array.isArray(users)) {
+    users = [users];
+  }
+
+  users.forEach((user) => {
+    if (
+      user._id == userLoggedIn._id ||
+      selectedUsers.some((u) => u._id == user._id)
+    ) {
+      return;
+    }
+
+    const html = createUserHTML(user);
+    let element = $(html);
+    element.click(() => userSelected(user));
+    container.append(element);
+  });
+
+  if (users.length === 0) {
+    container.append("<span></span>");
+  }
+}
+
+function searchUsers(term) {
+  $.get("/api/users", { search: term }, (results) => {
+    outputSelectableUsers(results, $(".results-container"));
+  });
+}
+
+function userSelected(user) {
+  selectedUsers.push(user);
+  updateSelectedUserHTML();
+  $("#userSearchTextBox").val("").focus();
+  $(".results-container").empty();
+  $("#createChatButton").prop("disabled", false);
+}
+
+function updateSelectedUserHTML() {
+  let elements = [];
+  selectedUsers.forEach((user) => {
+    const name = `${user.firstName} ${user.lastName}`;
+    const userElement = $(`<span class='selectedUser'>${name}</span>`);
+    elements.push(userElement);
+  });
+
+  $(".selectedUser").remove();
+
+  $("#selectedUsers").prepend(elements);
 }
