@@ -16,6 +16,7 @@ const registerRoutes = require("./routes/registerRoutes");
 const logoutRoutes = require("./routes/logoutRoutes");
 const postRoutes = require("./routes/postRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const searchRoutes = require("./routes/searchRoutes");
 const postsAPIRoutes = require("./routes/api/posts");
 const usersAPIRoutes = require("./routes/api/users");
 
@@ -39,6 +40,7 @@ app.use("/register", registerRoutes);
 app.use("/logout", logoutRoutes);
 app.use("/posts", middleware.requireLogin, postRoutes);
 app.use("/profile", middleware.requireLogin, profileRoutes);
+app.use("/search", middleware.requireLogin, searchRoutes);
 
 const apiRoutes = { posts: postsAPIRoutes, users: usersAPIRoutes };
 Object.entries(apiRoutes).forEach(([route, handler]) => {

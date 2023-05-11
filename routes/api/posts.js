@@ -9,9 +9,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 router.get("/", async (req, res, next) => {
   try {
-    const { isReply, ...searchObject } = req.query;
+    const { search, isReply, ...searchObject } = req.query;
     if (isReply !== undefined) {
       searchObject.replyTo = { $exists: isReply === "true" };
+    }
+
+    if (search !== undefined) {
+      searchObject.content = { $regex: search, $options: "i" };
     }
 
     const posts = await getPosts(searchObject);

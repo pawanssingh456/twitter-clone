@@ -7,8 +7,23 @@ const User = require("../../schemas/userSchema");
 app.use(bodyParser.urlencoded({ extended: false }));
 
 router.get("/", async (req, res) => {
-  const { isFollower, ...searchObject } = req.query;
-  const users = await getUsers(searchObject, isFollower === "true");
+  let { search, isFollower, ...searchObject } = req.query;
+
+  let users;
+
+  if (search !== undefined) {
+    searchObject = {
+      $or: [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { username: { $regex: search, $options: "i" } },
+      ],
+    };
+
+    users = await User.find(searchObject).exec();
+  } else {
+    users = await getUsers(searchObject, isFollower === "true");
+  }
 
   res.status(200).send(users);
 });
