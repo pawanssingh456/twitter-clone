@@ -47,7 +47,9 @@ async function getChats(req, res, next) {
     const loggedInUser = req.session.user;
     const chats = await Chat.find({
       users: { $elemMatch: { $eq: loggedInUser } },
-    }).populate("users");
+    })
+      .populate("users")
+      .sort({ updatedAt: -1 });
     return res.status(200).send(chats);
   } catch (error) {
     console.error(error);

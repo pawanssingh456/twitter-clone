@@ -13,6 +13,14 @@
     --blueBackground: rgba(212, 237, 255, 0.6)
 }
 
+html,
+body {
+    height: 100%;
+    min-height: 100%;
+    background-color: #fff;
+    font-weight: 300;
+}
+
 * {
     outline: none !important;
 }
@@ -71,8 +79,15 @@ button span {
     pointer-events: none;
 }
 
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .wrapper>.row {
     margin: 0;
+    height: 100%;
 }
 
 .main-section-container {
@@ -161,7 +176,7 @@ button span {
     flex-shrink: 0
 }
 
-.mainContentContainer {
+.main-content-container {
     flex: 1;
     display: flex
 }
@@ -395,6 +410,7 @@ button span {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    flex: 1;
 }
 
 .chat-title-bar {
@@ -407,6 +423,13 @@ button span {
 
 .chat-title-bar label {
     margin: 0, 10px, 0, 0;
+}
+
+.chat-title-bar-container {
+    border-bottom: 1px solid var(--lightGrey);
+    display: flex;
+    align-items: center;
+    padding: var(--spacing);
 }
 
 #userSearchTextBox {
@@ -505,4 +528,84 @@ button span {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+#chatName {
+    width: 100%;
+    border: 1px solid transparent;
+    padding: 0 5px;
+}
+
+#chatName:hover {
+    border: 1px solid var(--lightGrey);
+    cursor: text;
+}
+
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+}
+
+.chat-container .footer {
+    display: flex;
+    padding: var(--spacing);
+    flex-shrink: 0px;
+}
+
+.chat-container .footer textarea {
+    flex: 1;
+    resize: none;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 18px;
+    border: none;
+    padding: 8px 12px;
+    height: 38px;
+}
+
+.chat-container .footer button {
+    background-color: transparent;
+    color: var(--blue);
+    font-size: 24px;
+}
+
+
+.chat-messages {
+    flex: 1;
+    display: flex;
+    overflow-y: auto;
+    flex-direction: column;
+    padding: var(--spacing);
+}
+
+.chat-images-container {
+    display: flex;
+    flex-direction: row-reverse;
+    height: 100%;
+    margin-right: 10px;
+}
+
+.chat-images-container img {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+}
+
+.chat-images-container .user-count {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #fff;
+    background-color: #f1f1f1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.chat-images-container img:not(:last-child),
+.chat-images-container .user-count {
+    margin-left: 10px;
 }

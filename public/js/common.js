@@ -226,7 +226,7 @@ function createPostHTML(postData, largeFont = false) {
             <div class="postActionContainer">
               ${retweetText}
             </div>
-            <div class = "mainContentContainer">
+            <div class = "main-content-container">
               <div class = "userImageContainer">
                 <img src = ${postedBy.profilePic}>
               </div>
