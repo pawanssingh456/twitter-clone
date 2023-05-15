@@ -21,7 +21,8 @@
     "netlify-cli": "^15.0.2",
     "netlify-lambda": "^2.0.16",
     "pug": "^3.0.2",
-    "serverless-http": "^3.2.0"
+    "serverless-http": "^3.2.0",
+    "socket.io": "^4.6.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

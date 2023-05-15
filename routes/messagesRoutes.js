@@ -48,7 +48,6 @@ router.get("/:chatId", async (req, res) => {
     if (!userFound) {
       //get chat using user id
       chat = await getChatByUserId(userFound._id, userID);
-      console.log(chat);
     }
   }
 

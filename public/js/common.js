@@ -446,3 +446,11 @@ function getOtherChatUsers(users) {
     return user._id != userLoggedIn._id;
   });
 }
+
+function messageRecieved(newMessage) {
+  if ($(".chat-container").length == 0) {
+    //pop up notification
+  } else {
+    addChatMessageHTML(newMessage);
+  }
+}

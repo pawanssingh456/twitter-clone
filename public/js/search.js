@@ -19,7 +19,6 @@ function search(term, type) {
   let url = type == "users" ? "/api/users" : "/api/posts";
 
   $.get(url, { search: term }, (results) => {
-    console.log(results);
     if (type == "users") {
       outputUsers(results, $(".results-container"));
     } else {
