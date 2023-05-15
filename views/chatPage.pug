@@ -10,16 +10,20 @@ block content
         .chat-page-container 
             .chat-title-bar-container 
                 +createChatImage(chat, user)
-                span#chatName This is the chat
+                span#chatName(data-bs-toggle="modal", data-bs-target= '#chatNameModal')
 
             .main-content-container 
-                .chat-container 
-                    .chat-messages
+                .loading-spinner-container
+                    img(src="/images/loader.gif", alt="Loading Spinner")
+                .chat-container(style="visibility: hidden")
+                    ul.chat-messages
 
                     .footer 
-                        textarea(name="messageInput", placeholder="Type a message...") 
-                        button.sendMessageButton
+                        textarea.input-textbox(name="messageInput", placeholder="Type a message...") 
+                        button.send-message-button
                             i.fas.fa-paper-plane
+
+        +createChatNameModal(chat)
 
 block scripts
     script(src="/js/chat.js") 

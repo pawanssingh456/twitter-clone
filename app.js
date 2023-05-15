@@ -21,6 +21,7 @@ const messageRoutes = require("./routes/messagesRoutes");
 const postsAPIRoutes = require("./routes/api/posts");
 const usersAPIRoutes = require("./routes/api/users");
 const chatsAPIRoutes = require("./routes/api/chats");
+const messagesAPIRoutes = require("./routes/api/messages");
 
 // Initialize express app
 const app = express();
@@ -49,6 +50,7 @@ const apiRoutes = {
   posts: postsAPIRoutes,
   users: usersAPIRoutes,
   chats: chatsAPIRoutes,
+  messages: messagesAPIRoutes,
 };
 Object.entries(apiRoutes).forEach(([route, handler]) => {
   app.use(`/api/${route}`, handler);

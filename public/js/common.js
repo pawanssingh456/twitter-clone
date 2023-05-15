@@ -19,6 +19,16 @@ $("#postTextarea, #replyTextarea").keyup((event) => {
   submitButton.prop("disabled", false);
 });
 
+$("#chatNameTextBox").keyup((event) => {
+  let textBox = $(event.target);
+  let value = textBox.val().trim();
+
+  let chatNameButton = $("#chatNameButton");
+
+  // Disable or enable the chat name button
+  chatNameButton.prop("disabled", value === "");
+});
+
 $("#submitPostButton, #submitReplyButton").click((event) => {
   let button = $(event.target);
   let isModal = button.parents(".modal").length == 1;
@@ -412,4 +422,27 @@ function updateSelectedUserHTML() {
   $(".selectedUser").remove();
 
   $("#selectedUsers").prepend(elements);
+}
+
+function getChatName(chat) {
+  let chatName = chat.chatName;
+  if (!chatName) {
+    let otherChatUsers = getOtherChatUsers(chat.users);
+    let namesArray = otherChatUsers.map(
+      (user) => `${user.firstName} ${user.lastName}`
+    );
+    chatName = namesArray.join(",");
+  }
+
+  return chatName;
+}
+
+function getOtherChatUsers(users) {
+  if (users.length == 1) {
+    return users;
+  }
+
+  return users.filter((user) => {
+    return user._id != userLoggedIn._id;
+  });
 }

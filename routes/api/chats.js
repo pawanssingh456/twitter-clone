@@ -4,11 +4,15 @@ const router = express.Router();
 const bodyParser = require("body-parser");
 const User = require("../../schemas/userSchema");
 const Chat = require("../../schemas/chatSchema");
+const Message = require("../../schemas/messageSchema");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
 router.post("/", createChat);
 router.get("/", getChats);
+router.get("/:chatId", getChat);
+router.get("/:chatId/messages", getChatMessage);
+router.put("/:chatId", updateChat);
 
 async function createChat(req, res, next) {
   try {
@@ -45,12 +49,53 @@ async function createChat(req, res, next) {
 async function getChats(req, res, next) {
   try {
     const loggedInUser = req.session.user;
-    const chats = await Chat.find({
+    let chats = await Chat.find({
       users: { $elemMatch: { $eq: loggedInUser } },
     })
       .populate("users")
+      .populate("latestMessage")
       .sort({ updatedAt: -1 });
+
+    chats = await User.populate(chats, { path: "latestMessage.sender" });
+
     return res.status(200).send(chats);
+  } catch (error) {
+    console.error(error);
+    return res.sendStatus(500);
+  }
+}
+
+async function getChat(req, res, next) {
+  try {
+    const loggedInUser = req.session.user;
+    const chats = await Chat.findOne({
+      _id: req.params.chatId,
+      users: { $elemMatch: { $eq: loggedInUser } },
+    }).populate("users");
+    return res.status(200).send(chats);
+  } catch (error) {
+    console.error(error);
+    return res.sendStatus(500);
+  }
+}
+
+async function getChatMessage(req, res, next) {
+  try {
+    const loggedInUser = req.session.user;
+    const messages = await Message.find({
+      chat: req.params.chatId,
+    }).populate("sender");
+    return res.status(200).send(messages);
+  } catch (error) {
+    console.error(error);
+    return res.sendStatus(500);
+  }
+}
+
+async function updateChat(req, res, next) {
+  try {
+    const chats = await Chat.findByIdAndUpdate(req.params.chatId, req.body);
+    return res.sendStatus(204);
   } catch (error) {
     console.error(error);
     return res.sendStatus(500);
