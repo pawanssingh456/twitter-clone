@@ -56,6 +56,12 @@ async function getChats(req, res, next) {
       .populate("latestMessage")
       .sort({ updatedAt: -1 });
 
+    if (req.query.unreadOnly !== undefined && req.query.unreadOnly == "true") {
+      chats = chats.filter(
+        (r) => !r.latestMessage.readBy.includes(req.session.user._id)
+      );
+    }
+
     chats = await User.populate(chats, { path: "latestMessage.sender" });
 
     return res.status(200).send(chats);

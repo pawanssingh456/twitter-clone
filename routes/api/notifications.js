@@ -14,11 +14,17 @@ router.put("/:id/mark-as-opened", opened);
 router.put("/mark-as-opened", markAllAsopened);
 
 async function getNotifications(req, res, next) {
+  let search = {
+    userTo: req.session.user._id,
+    notificationType: { $ne: "newMessage" },
+  };
+
+  if (req.query.unreadOnly !== undefined && req.query.unreadOnly == "true") {
+    search.opened = false;
+  }
+
   try {
-    let notifications = await Notification.find({
-      userTo: req.session.user._id,
-      notificationType: { $ne: "newMessage" },
-    })
+    let notifications = await Notification.find(search)
       .populate("userTo")
       .populate("userFrom")
       .sort({ createdAt: -1 });
