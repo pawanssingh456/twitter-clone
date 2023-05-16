@@ -97,6 +97,10 @@ io.on("connection", (socket) => {
     socket.in(room).emit("stop typing");
   });
 
+  socket.on("notification recieved", (room) => {
+    socket.in(room).emit("notification recieved");
+  });
+
   socket.on("new message", (newMessage) => {
     let chat = newMessage.chat;
     if (!chat.users) return console.log("chat users not defined");

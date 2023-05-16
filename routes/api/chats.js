@@ -13,6 +13,7 @@ router.get("/", getChats);
 router.get("/:chatId", getChat);
 router.get("/:chatId/messages", getChatMessage);
 router.put("/:chatId", updateChat);
+router.put("/:chatId/messages/mark-as-read", markAsRead);
 
 async function createChat(req, res, next) {
   try {
@@ -58,7 +59,9 @@ async function getChats(req, res, next) {
 
     if (req.query.unreadOnly !== undefined && req.query.unreadOnly == "true") {
       chats = chats.filter(
-        (r) => !r.latestMessage.readBy.includes(req.session.user._id)
+        (r) =>
+          r.latestMessage &&
+          !r.latestMessage.readBy.includes(req.session.user._id)
       );
     }
 
@@ -101,6 +104,19 @@ async function getChatMessage(req, res, next) {
 async function updateChat(req, res, next) {
   try {
     const chats = await Chat.findByIdAndUpdate(req.params.chatId, req.body);
+    return res.sendStatus(204);
+  } catch (error) {
+    console.error(error);
+    return res.sendStatus(500);
+  }
+}
+
+async function markAsRead(req, res, next) {
+  try {
+    const chats = await Message.updateMany(
+      { chat: req.params.chatId },
+      { $addToSet: { readBy: req.session.user._id } }
+    );
     return res.sendStatus(204);
   } catch (error) {
     console.error(error);

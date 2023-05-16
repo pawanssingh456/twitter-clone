@@ -39,7 +39,7 @@ async function createMessage(req, res, next) {
       console.error(error);
     });
 
-    insertNotification(chat, message);
+    insertNotification(chat, createdMessage);
 
     res.status(201).send(createdMessage);
   } catch (error) {

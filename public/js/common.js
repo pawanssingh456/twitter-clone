@@ -51,6 +51,7 @@ $("#submitPostButton, #submitReplyButton").click((event) => {
 
   $.post("/api/posts", data, (postData, status, xhr) => {
     if (postData.replyTo) {
+      emitNotification(postData.replyTo.postedBy);
       location.reload();
     } else {
       let html = createPostHTML(postData);
@@ -143,6 +144,7 @@ $(document).on("click", ".likeButton", (event) => {
 
       if (post.likes.includes(userLoggedIn._id)) {
         button.addClass("active");
+        emitNotification(post.postedBy);
       } else {
         button.removeClass("active");
       }
@@ -162,6 +164,7 @@ $(document).on("click", ".retweetButton", (event) => {
 
       if (post.retweetUsers.includes(userLoggedIn._id)) {
         button.addClass("active");
+        emitNotification(post.postedBy);
       } else {
         button.removeClass("active");
       }
@@ -464,8 +467,9 @@ function getOtherChatUsers(users) {
 }
 
 function messageRecieved(newMessage) {
-  if ($(".chat-container").length == 0) {
+  if ($(`[data-room="${newMessage.chat._id}"]`).length == 0) {
     //pop up notification
+    showMessagePopup(newMessage);
   } else {
     addChatMessageHTML(newMessage);
   }
@@ -493,7 +497,7 @@ function refreshMessagesBadge() {
     if (numResults > 0) {
       $("#messageBadge").text(numResults).addClass("active");
     } else {
-      $("#messageBadge").text("").addClass("");
+      $("#messageBadge").text("").removeClass("active");
     }
   });
 }
@@ -507,4 +511,181 @@ function refreshNotificationsBadge() {
       $("#notificationBadge").text("").addClass("");
     }
   });
+}
+
+function outputNotificationList(notificaitions, container) {
+  notificaitions.forEach((notification) => {
+    const html = createNotificationHTML(notification);
+    container.append(html);
+  });
+
+  if (notificaitions.length == 0) {
+    container.append(`<span class="no-result">Nothing to show.</span>`);
+  }
+}
+
+function createNotificationHTML(notification) {
+  let userFrom = notification.userFrom;
+  const url = getNotificationURL(notification);
+  const openedClassName = notification.opened ? "" : "active";
+  return `<a href="${url}" class="result-list-item notification ${openedClassName}" data-id=${
+    notification._id
+  }>
+                <div class="results-image-container">
+                    <img src="${userFrom.profilePic}">
+                </div>
+                <div class="results-details-container ellipsis">
+                    <span class="ellipsis">
+                        ${getNotificationText(notification)}
+                    </span>
+                </div>
+            </a>`;
+}
+
+function getNotificationText(notification) {
+  const { userFrom, notificationType } = notification;
+  if (!userFrom.firstName || !userFrom.lastName) {
+    console.log("user from data not populated");
+    return;
+  }
+
+  const userFromName = `${userFrom.firstName} ${userFrom.lastName}`;
+  let text;
+
+  if (notificationType == "retweet") {
+    text = `${userFromName} retweeted one of your posts.`;
+  } else if (notificationType == "like") {
+    text = `${userFromName} liked one of your posts.`;
+  } else if (notificationType == "reply") {
+    text = `${userFromName} replied one of your posts.`;
+  } else if (notificationType == "follow") {
+    text = `${userFromName} followed you.`;
+  }
+
+  return `<span class="ellipsis">
+            ${text}
+        </span>`;
+}
+
+function getNotificationURL(notification) {
+  const { notificationType } = notification;
+
+  let url = "#";
+
+  if (
+    notificationType == "retweet" ||
+    notificationType == "like" ||
+    notificationType == "reply"
+  ) {
+    url = `/posts/${notification.entityID}`;
+  } else if (notificationType == "follow") {
+    url = `/profile/${notification.entityID}`;
+  }
+
+  return url;
+}
+
+function showNotificationPopup(data) {
+  const html = createNotificationHTML(data);
+  let element = $(html);
+  element.hide().prependTo("#notificationList").slideDown("fast ");
+
+  setTimeout(() => element.fadeOut(800), 5000);
+}
+
+function outputChatList(chats, container) {
+  if (!chats.length) {
+    container.append(`<span class="no-result">Nothing to show.</span>`);
+    return;
+  }
+
+  chats.forEach((chat) => {
+    let html = createChatHTML(chat);
+    container.append(html);
+  });
+}
+
+function createChatHTML(chat) {
+  let chatName = getChatName(chat);
+  let image = getChatImageElements(chat);
+  let latestMessage = getLatestMessage(chat.latestMessage);
+
+  let activeClass =
+    !chat.latestMessage || chat.latestMessage.readBy.includes(userLoggedIn._id)
+      ? ""
+      : "active";
+
+  return `<a href='/messages/${chat._id}' class="result-list-item ${activeClass}">
+                ${image}
+              <div class="results-details-container ellipsis">
+                  <span class="heading ellipsis">${chatName}</span>
+                  <span class="sub-text ellipsis">${latestMessage}</span>
+              </div>
+          </a>`;
+}
+
+function getLatestMessage(latestMessage) {
+  if (latestMessage != null) {
+    const sender = latestMessage.sender;
+    return `${sender.firstName} ${sender.lastName}: ${latestMessage.content}`;
+  }
+
+  return "New Chat";
+}
+
+function getChatName(chat) {
+  let chatName = chat.chatName;
+  if (!chatName) {
+    let otherChatUsers = getOtherChatUsers(chat.users);
+    let namesArray = otherChatUsers.map(
+      (user) => `${user.firstName} ${user.lastName}`
+    );
+    chatName = namesArray.join(",");
+  }
+
+  return chatName;
+}
+
+function getOtherChatUsers(users) {
+  if (users.length == 1) {
+    return users;
+  }
+
+  return users.filter((user) => {
+    return user._id != userLoggedIn._id;
+  });
+}
+
+function getChatImageElements(chat) {
+  let otherChatUsers = getOtherChatUsers(chat.users);
+  let groupChatClass = "";
+  let chatImage = getUserChatImageElement(otherChatUsers[0]);
+
+  if (otherChatUsers.length > 1) {
+    groupChatClass = "group-chat-image";
+    chatImage += getUserChatImageElement(otherChatUsers[1]);
+  }
+
+  return `<div class="results-image-container ${groupChatClass}">
+                ${chatImage}
+            </div>`;
+}
+
+function getUserChatImageElement(user) {
+  if (!user && !user.profilePic) {
+    return alert("Invalid User!");
+  }
+  return `<img src='${user.profilePic}' alt='User's profile pic.'>`;
+}
+
+function showMessagePopup(data) {
+  if (!data.chat.latestMessage._id) {
+    data.chat.latestMessage = data;
+  }
+
+  const html = createChatHTML(data.chat);
+  let element = $(html);
+  element.hide().prependTo("#notificationList").slideDown("fast ");
+
+  setTimeout(() => element.fadeOut(800), 5000);
 }

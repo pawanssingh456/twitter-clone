@@ -10,8 +10,24 @@ const Notification = require("../../schemas/notificationSchema");
 app.use(bodyParser.urlencoded({ extended: false }));
 
 router.get("/", getNotifications);
+router.get("/latest", getLatestNotifications);
 router.put("/:id/mark-as-opened", opened);
 router.put("/mark-as-opened", markAllAsopened);
+
+async function getLatestNotifications(req, res, next) {
+  try {
+    let notifications = await Notification.findOne({
+      userTo: req.session.user._id,
+    })
+      .populate("userTo")
+      .populate("userFrom")
+      .sort({ createdAt: -1 });
+    res.status(200).send(notifications);
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(400);
+  }
+}
 
 async function getNotifications(req, res, next) {
   let search = {
