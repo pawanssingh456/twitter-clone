@@ -173,6 +173,17 @@ $(document).on("click", ".post", (event) => {
   }
 });
 
+$(document).on("click", ".notification.active", (event) => {
+  let container = $(event.target);
+  let notificationID = container.data().id;
+  let href = container.attr("href");
+  event.preventDefault();
+
+  let callback = () => (window.location.href = href);
+
+  markNotificationAsOpened(notificationID, callback);
+});
+
 function getPostIdFromElement(element) {
   let isRoot = element.hasClass("post");
   let rootElement = isRoot ? element : element.closest(".post");
@@ -453,4 +464,18 @@ function messageRecieved(newMessage) {
   } else {
     addChatMessageHTML(newMessage);
   }
+}
+
+function markNotificationAsOpened(notitificationID = null, callback = null) {
+  if (callback == null) callback = () => location.reload();
+  let url =
+    notitificationID != null
+      ? `/api/notifications/${notitificationID}/mark-as-opened`
+      : `/api/notifications/mark-as-opened`;
+
+  $.ajax({
+    url,
+    type: "PUT",
+    success: callback,
+  });
 }

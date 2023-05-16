@@ -1,0 +1,11 @@
+extends layouts/mainLayout.pug 
+
+block content
+    .results-container
+
+block header-button
+    button#markNotificationsAsRead
+        i.fas.fa-check-double
+
+block scripts
+    script(src="/js/notifications.js") 

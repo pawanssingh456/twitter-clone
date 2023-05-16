@@ -18,10 +18,12 @@ const postRoutes = require("./routes/postRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const messageRoutes = require("./routes/messagesRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const postsAPIRoutes = require("./routes/api/posts");
 const usersAPIRoutes = require("./routes/api/users");
 const chatsAPIRoutes = require("./routes/api/chats");
 const messagesAPIRoutes = require("./routes/api/messages");
+const notificationsAPIRoutes = require("./routes/api/notifications");
 
 // Initialize express app
 const app = express();
@@ -45,12 +47,14 @@ app.use("/posts", middleware.requireLogin, postRoutes);
 app.use("/profile", middleware.requireLogin, profileRoutes);
 app.use("/search", middleware.requireLogin, searchRoutes);
 app.use("/messages", middleware.requireLogin, messageRoutes);
+app.use("/notifications", middleware.requireLogin, notificationRoutes);
 
 const apiRoutes = {
   posts: postsAPIRoutes,
   users: usersAPIRoutes,
   chats: chatsAPIRoutes,
   messages: messagesAPIRoutes,
+  notifications: notificationsAPIRoutes,
 };
 Object.entries(apiRoutes).forEach(([route, handler]) => {
   app.use(`/api/${route}`, handler);

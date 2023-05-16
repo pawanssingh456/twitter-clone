@@ -3,6 +3,7 @@ const app = express();
 const router = express.Router();
 const bodyParser = require("body-parser");
 const User = require("../../schemas/userSchema");
+const Notification = require("../../schemas/notificationSchema");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -50,6 +51,15 @@ router.put("/:uid", async (req, res, next) => {
       { [option]: { followers: userId } },
       { new: true }
     ).exec();
+
+    if (!isFollower) {
+      await Notification.insertNotification(
+        followingId,
+        userId,
+        "follow",
+        req.session.user._id
+      );
+    }
 
     res.status(200).send(user);
   } catch (err) {
