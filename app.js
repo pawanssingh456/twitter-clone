@@ -3,6 +3,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 const session = require("express-session");
+const RateLimiter = require("./RateLimiter");
+const rateLimiter = new RateLimiter(60 * 1000, 100); // 1 minute window, 100 requests per window
 
 // Import middleware
 const middleware = require("./middleware");
@@ -38,6 +40,7 @@ app.use(
     saveUninitialized: false,
   })
 );
+app.use(rateLimiter.middleware.bind(rateLimiter));
 
 // Configure routes
 app.use("/login", loginRoutes);
